@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.0.7]
+- Clear output after save
+
+## [0.0.6]
+- Forked into Sass Autocompile
+- On save, another script can be forced to compile by adding a comment to the top of the file
+- Compile on Save can now be configured for individual files by adding a comment to the top of the file
+
 ## [0.0.5]
 - Fixed bug with global paths in import directive
 - Added support for tilde character in import directive (will resolve to currently opened folder in VS Code)

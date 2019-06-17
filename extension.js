@@ -3,6 +3,7 @@ var fs = require('fs');
 var replaceExt = require('replace-ext');
 var compileSass = require('./lib/sass.node.spk.js');
 var pathModule = require('path');
+var lineReader = require('line-reader');
 
 var CompileSassExtension = function() {
 
@@ -12,7 +13,7 @@ var CompileSassExtension = function() {
 
     // Constructor ------------------------------------------------------------
 
-    outputChannel = vscode.window.createOutputChannel("EasySass");
+    outputChannel = vscode.window.createOutputChannel("sass_autocompile");
 
     // Private functions ------------------------------------------------------
 
@@ -39,17 +40,17 @@ var CompileSassExtension = function() {
                 outputChannel.appendLine("Failed to generate CSS from SASS, but the error is unknown.");
             }
 
-            vscode.window.showErrorMessage('EasySass: could not generate CSS file. See Output panel for details.');
+            vscode.window.showErrorMessage('sass_autocompile: could not generate CSS file. See Output panel for details.');
             outputChannel.show(true);
         }
     }
 
     // Generates target path for scss/sass file basing on its path
-    // and easysass.targetDir setting. If the setting specifies
+    // and sass_autocompile.targetDir setting. If the setting specifies
     // relative path, current workspace folder is used as root.
     function generateTargetPath(path) {
 
-        var configuration = vscode.workspace.getConfiguration('easysass');
+        var configuration = vscode.workspace.getConfiguration('sass_autocompile');
 
         var targetDir = pathModule.dirname(path);
         var filename = pathModule.basename(path);
@@ -60,7 +61,7 @@ var CompileSassExtension = function() {
             } else {
                 var folder = vscode.workspace.rootPath;
                 if (folder == undefined) {
-                    throw "Path specified in easysass.targetDir is relative, but there is no open folder in VS Code!";
+                    throw "Path specified in sass_autocompile.targetDir is relative, but there is no open folder in VS Code!";
                 }
 
                 targetDir = pathModule.join(folder, configuration.targetDir);
@@ -78,14 +79,14 @@ var CompileSassExtension = function() {
 
         outputChannel.clear();
 
-        var configuration = vscode.workspace.getConfiguration('easysass');
+        var configuration = vscode.workspace.getConfiguration('sass_autocompile');
 
         var outputPathData = generateTargetPath(path);
 
         // Iterate through formats from configuration
 
         if (configuration.formats.length == 0) {
-            throw "No formats are specified. Define easysass.formats setting (or remove to use defaults)";
+            throw "No formats are specified. Define sass_autocompile.formats setting (or remove to use defaults)";
         }
 
         for (var i = 0; i < configuration.formats.length; i++) {
@@ -108,12 +109,12 @@ var CompileSassExtension = function() {
                     style = compileSass.Sass.style.compressed;
                     break;
                 default:
-                    throw "Invalid format specified for easysass.formats[" + i + "]. Look at setting's hint for available formats.";
+                    throw "Invalid format specified for sass_autocompile.formats[" + i + "]. Look at setting's hint for available formats.";
             }
 
             // Check target extension
             if (format.extension == undefined || format.extension.length == 0)
-                throw "No extension specified for easysass.formats[" + i + "].";
+                throw "No extension specified for sass_autocompile.formats[" + i + "].";
 
             var targetPath = pathModule.join(outputPathData.targetDir, replaceExt(outputPathData.filename, format.extension));
 
@@ -133,7 +134,7 @@ var CompileSassExtension = function() {
     // Checks, if the file matches the exclude regular expression
     function checkExclude(filename) {
         
-        var configuration = vscode.workspace.getConfiguration('easysass');
+        var configuration = vscode.workspace.getConfiguration('sass_autocompile');
         return configuration.excludeRegex.length > 0 && new RegExp(configuration.excludeRegex).test(filename);
     }
 
@@ -144,31 +145,63 @@ var CompileSassExtension = function() {
         OnSave: function (document) {
 
             try {
-
-                var configuration = vscode.workspace.getConfiguration('easysass');
+                var configuration = vscode.workspace.getConfiguration('sass_autocompile');
                 var filename = pathModule.basename(document.fileName);
 
-                if (configuration.compileAfterSave) {
-                    
-                    if (document.fileName.toLowerCase().endsWith('.scss') ||
-                        document.fileName.toLowerCase().endsWith('.sass')) {
+                if (document.fileName.toLowerCase().endsWith('.scss') ||
+                    document.fileName.toLowerCase().endsWith('.sass')) {
 
-                        if (!checkExclude(filename)) {
-                            compileFile(document.fileName);                
-                        } else {
-                            outputChannel.appendLine("File " + document.fileName + " is excluded from building to CSS. Check easysass.excludeRegex setting.");
+                    let file = {
+                        compileAfterSave: false,
+                        mainFile: null
+                    };
+
+                    let next = () => {
+                        if (configuration.compileAfterSave || file.compileAfterSave || file.mainFile) {
+                            
+                            if(file.mainFile) {
+                                compileFile(file.mainFile);
+                            } else
+                            if (!checkExclude(filename) || file.compileAfterSave) {
+                                compileFile(document.fileName);
+                            } else {
+                                return outputChannel.appendLine("File " + document.fileName + " is excluded from building to CSS. Check sass_autocompile.excludeRegex setting.");
+                            }
                         }
                     }
+
+                    lineReader.eachLine(document.fileName, function(line) {  
+                        if(line.indexOf('//') != 0) {
+                            next();
+                            return false;
+                        }
+
+                        if(line.indexOf('compile') > -1) {
+                            file.compileAfterSave = true;
+                        } else
+                        if(line.indexOf('main') > -1) {
+                            let data = (/\/\/\s*main\:\s*([\.\/\w]+)/g).exec(line);
+                            if(data.length > 1) {
+                                let filePath = pathModule.join(document.fileName.substring(0, document.fileName.lastIndexOf('\\')), data[1]);
+                                if(!fs.existsSync(filePath)) {
+                                    ['scss', 'sass'].forEach(ext => {
+                                        let path = `${filePath}.${ext}`;
+                                        if(fs.existsSync(path)) file.mainFile = path;
+                                    })
+                                }
+                            }
+                        }
+                    });
                 }
 
             }
             catch (e) {
-                vscode.window.showErrorMessage('EasySass: could not generate CSS file: ' + e);
+                vscode.window.showErrorMessage('Sass Autocompile: could not generate CSS file: ' + e);
             }
         },
         CompileAll: function() {
 
-            var configuration = vscode.workspace.getConfiguration('easysass');
+            var configuration = vscode.workspace.getConfiguration('sass_autocompile');
 
             vscode.workspace.findFiles("**/*.s[ac]ss").then(function(files) {
 
@@ -178,7 +211,7 @@ var CompileSassExtension = function() {
                         var filename = pathModule.basename(files[i].fsPath);
                         if (checkExclude(filename)) {
 
-                            outputChannel.appendLine("File " + filename + " is excluded from building to CSS. Check easysass.excludeRegex setting.");
+                            outputChannel.appendLine("File " + filename + " is excluded from building to CSS. Check sass_autocompile.excludeRegex setting.");
                             continue;
                         }
                         
@@ -186,7 +219,7 @@ var CompileSassExtension = function() {
                     }
                 }
                 catch (e) {
-                    vscode.window.showErrorMessage('EasySass: could not generate CSS file: ' + e);
+                    vscode.window.showErrorMessage('Sass Autocompile: could not generate CSS file: ' + e);
                 }                
             });            
         }
@@ -199,7 +232,7 @@ function activate(context) {
 
     vscode.workspace.onDidSaveTextDocument(function(document) { extension.OnSave(document) });
 
-    var disposable = vscode.commands.registerCommand('easysass.compileAll', function() {
+    var disposable = vscode.commands.registerCommand('sass_autocompile.compileAll', function() {
         extension.CompileAll();
     });
 

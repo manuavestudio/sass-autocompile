@@ -1,11 +1,13 @@
-# EasySass README
+# Sass Autocompile README
 
-It's about time someone created a standalone extension to compile SASS/SCSS files in Visual Studio Code. Don't you think?
+I created this fork of EasySass to add some features which I miss from Atom's extension, Sass Autocompile.
 
 ## Features
 
 Automatically compiles SASS/SCSS files to .css and .min.css upon saving. You may also quickly compile all SCSS/SASS files in your project.
+Compile other Sass files on save (for imports)
 
+Demo from EasySass:
 ![Demo](demo.gif)
 
 ## Commands
@@ -16,15 +18,19 @@ Automatically compiles SASS/SCSS files to .css and .min.css upon saving. You may
 
 This extension contributes the following settings:
 
-* `easysass.compileAfterSave`: enable or disable automatic compilation after saving
-* `easysass.formats`: specify extensions and formats for exported files.
-* `easysass.targetDir`: define target directory for generated files.
-* `easysass.excludeRegex`: exclude files from compilation with regular expression
+* `sass_autocompile.compileAfterSave`: enable or disable automatic compilation after saving
+* `sass_autocompile.formats`: specify extensions and formats for exported files.
+* `sass_autocompile.targetDir`: define target directory for generated files.
+* `sass_autocompile.excludeRegex`: exclude files from compilation with regular expression
 
 ## Release Notes
 
-### [0.0.5]
-- Fixed bug with global paths in import directive
-- Added support for tilde character in import directive (will resolve to currently opened folder in VS Code)
+## [0.0.6]
+- Forked into Sass Autocompile
+- On save, another script can be forced to compile by adding a comment to the top of the file
+- Compile on Save can now be configured for individual files by adding a comment to the top of the file
+
+## [0.0.7]
+- Clear output after each save
 
 **Enjoy!**
