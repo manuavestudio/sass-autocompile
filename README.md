@@ -33,4 +33,7 @@ This extension contributes the following settings:
 ## [0.0.7]
 - Clear output after each save
 
+## [0.0.8]
+- Added timestamps on outputs for clarity.
+
 **Enjoy!**
