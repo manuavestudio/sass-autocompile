@@ -25,10 +25,10 @@ var CompileSassExtension = function() {
             try {                
                 fs.writeFileSync(outputPath, result.text, { flags: "w" });
             } catch (e) {
-                outputChannel.appendLine(Date.now() + ": Failed to generate CSS: " + e);
+                outputChannel.appendLine((new Date).toLocaleTimeString() + ": Failed to generate CSS: " + e);
             }
 
-            outputChannel.appendLine(Date.now() + ": Successfully generated CSS: " + outputPath);
+            outputChannel.appendLine((new Date).toLocaleTimeString() + ": Successfully generated CSS: " + outputPath);
         }
         else {
 
@@ -37,10 +37,10 @@ var CompileSassExtension = function() {
             } else if (result.message) {
                 outputChannel.appendLine(result.message);
             } else {
-                outputChannel.appendLine(Date.now() + ": Failed to generate CSS from SASS, but the error is unknown.");
+                outputChannel.appendLine((new Date).toLocaleTimeString() + ": Failed to generate CSS from SASS, but the error is unknown.");
             }
 
-            vscode.window.showErrorMessage(Date.now() + ': sass_autocompile: could not generate CSS file. See Output panel for details.');
+            vscode.window.showErrorMessage((new Date).toLocaleTimeString() + ': sass_autocompile: could not generate CSS file. See Output panel for details.');
             outputChannel.show(true);
         }
     }
@@ -165,7 +165,7 @@ var CompileSassExtension = function() {
                             if (!checkExclude(filename) || file.compileAfterSave) {
                                 compileFile(document.fileName);
                             } else {
-                                return outputChannel.appendLine(Date.now() + ": File " + document.fileName + " is excluded from building to CSS. Check sass_autocompile.excludeRegex setting.");
+                                return outputChannel.appendLine((new Date).toLocaleTimeString() + ": File " + document.fileName + " is excluded from building to CSS. Check sass_autocompile.excludeRegex setting.");
                             }
                         }
                     }
@@ -211,7 +211,7 @@ var CompileSassExtension = function() {
                         var filename = pathModule.basename(files[i].fsPath);
                         if (checkExclude(filename)) {
 
-                            outputChannel.appendLine(Date.now() + ": File " + filename + " is excluded from building to CSS. Check sass_autocompile.excludeRegex setting.");
+                            outputChannel.appendLine((new Date).toLocaleTimeString() + ": File " + filename + " is excluded from building to CSS. Check sass_autocompile.excludeRegex setting.");
                             continue;
                         }
                         
