@@ -10,7 +10,7 @@
         "type": "git",
         "url": "https://github.com/Darius2652/sass-autocompile.git"
     },
-    "version": "0.0.8",
+    "version": "0.0.9",
     "publisher": "darius2652",
     "homepage": "",
     "engines": {
