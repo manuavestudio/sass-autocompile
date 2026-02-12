@@ -7,6 +7,17 @@ var lineReader = require('line-reader');
 
 var CompileSassExtension = function() {
 
+    // Aux function to format output date based on my preferences
+    function formatDateTime() {
+        const date = new Date();
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        return `${day}/${month} ${hours}:${minutes}:${seconds}`;
+    }
+
     // Private fields ---------------------------------------------------------
 
     var outputChannel;
@@ -25,10 +36,10 @@ var CompileSassExtension = function() {
             try {                
                 fs.writeFileSync(outputPath, result.text, { flags: "w" });
             } catch (e) {
-                outputChannel.appendLine((new Date).toLocaleTimeString() + ": Failed to generate CSS: " + e);
+                outputChannel.appendLine(formatDateTime() +  + ": Failed to generate CSS: " + e);
             }
 
-            outputChannel.appendLine((new Date).toLocaleTimeString() + ": Successfully generated CSS: " + outputPath);
+            outputChannel.appendLine(formatDateTime() +  + ": Successfully generated CSS: " + outputPath);
         }
         else {
 
@@ -37,10 +48,10 @@ var CompileSassExtension = function() {
             } else if (result.message) {
                 outputChannel.appendLine(result.message);
             } else {
-                outputChannel.appendLine((new Date).toLocaleTimeString() + ": Failed to generate CSS from SASS, but the error is unknown.");
+                outputChannel.appendLine(formatDateTime() +  + ": Failed to generate CSS from SASS, but the error is unknown.");
             }
 
-            vscode.window.showErrorMessage((new Date).toLocaleTimeString() + ': sass_autocompile: could not generate CSS file. See Output panel for details.');
+            vscode.window.showErrorMessage(formatDateTime() +  + ': sass_autocompile: could not generate CSS file. See Output panel for details.');
             outputChannel.show(true);
         }
     }
@@ -165,7 +176,7 @@ var CompileSassExtension = function() {
                             if (!checkExclude(filename) || file.compileAfterSave) {
                                 compileFile(document.fileName);
                             } else {
-                                return outputChannel.appendLine((new Date).toLocaleTimeString() + ": File " + document.fileName + " is excluded from building to CSS. Check sass_autocompile.excludeRegex setting.");
+                                return outputChannel.appendLine(formatDateTime() +  + ": File " + document.fileName + " is excluded from building to CSS. Check sass_autocompile.excludeRegex setting.");
                             }
                         }
                     }
@@ -211,7 +222,7 @@ var CompileSassExtension = function() {
                         var filename = pathModule.basename(files[i].fsPath);
                         if (checkExclude(filename)) {
 
-                            outputChannel.appendLine((new Date).toLocaleTimeString() + ": File " + filename + " is excluded from building to CSS. Check sass_autocompile.excludeRegex setting.");
+                            outputChannel.appendLine(formatDateTime() +  + ": File " + filename + " is excluded from building to CSS. Check sass_autocompile.excludeRegex setting.");
                             continue;
                         }
                         
