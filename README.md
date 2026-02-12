@@ -35,5 +35,8 @@ This extension contributes the following settings:
 
 ## [0.0.8]
 - Added timestamps on outputs for clarity.
+  
+## [0.0.9]
+- Modified output timestamps formatting.
 
 **Enjoy!**
